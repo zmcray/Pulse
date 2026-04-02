@@ -1,4 +1,4 @@
-import { useTasksState } from "./contexts/TasksContext.jsx";
+import { useTasksState, useTasksDispatch } from "./contexts/TasksContext.jsx";
 import Header from "./components/Header.jsx";
 import WorkblockGroup from "./components/WorkblockGroup.jsx";
 import EmptyState from "./components/EmptyState.jsx";
@@ -22,22 +22,27 @@ function groupByWorkblock(tasks) {
 
 export default function App() {
   const { tasks, loading, error, mode } = useTasksState();
+  const { refreshTasks } = useTasksDispatch();
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-text-secondary text-sm">Loading tasks...</div>
+      <div className="min-h-screen flex items-center justify-center bg-surface">
+        <div className="text-text-muted text-sm">Loading tasks...</div>
       </div>
     );
   }
 
   if (error && tasks.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-error mb-2">Failed to load tasks</p>
-          <p className="text-text-secondary text-sm">{error}</p>
-        </div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-surface gap-3">
+        <p className="text-red text-sm">Failed to load tasks</p>
+        <p className="text-text-muted text-xs">{error}</p>
+        <button
+          onClick={refreshTasks}
+          className="text-xs px-3 py-1.5 rounded-lg bg-surface-card border border-border text-text-secondary hover:border-text-muted transition-colors"
+        >
+          Try again
+        </button>
       </div>
     );
   }
@@ -45,11 +50,11 @@ export default function App() {
   const workblockGroups = groupByWorkblock(tasks);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-surface">
       <Header />
-      <main className="max-w-2xl mx-auto px-4 pb-12">
+      <main className="max-w-3xl mx-auto px-6 py-5 pb-16">
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
+          <div className="bg-[#fef1ee] border border-red/20 rounded-lg px-4 py-2.5 mb-4 text-xs text-red">
             Notion sync issue: {error}. Showing cached data.
           </div>
         )}
@@ -59,15 +64,24 @@ export default function App() {
         ) : tasks.length === 0 ? (
           <EmptyState />
         ) : (
-          <div className="space-y-6">
-            {workblockGroups.map(([workblock, wbTasks]) => (
-              <WorkblockGroup
-                key={workblock}
-                workblock={workblock}
-                tasks={wbTasks}
-              />
-            ))}
-          </div>
+          <>
+            <div className="text-[10px] font-semibold tracking-[0.08em] uppercase text-text-muted mb-4">
+              Day Dashboard
+            </div>
+            {/* Timeline line */}
+            <div className="relative">
+              <div className="absolute left-[3px] top-5 bottom-5 w-0.5 bg-border z-0" />
+              <div className="relative z-1">
+                {workblockGroups.map(([workblock, wbTasks]) => (
+                  <WorkblockGroup
+                    key={workblock}
+                    workblock={workblock}
+                    tasks={wbTasks}
+                  />
+                ))}
+              </div>
+            </div>
+          </>
         )}
       </main>
     </div>

@@ -4,8 +4,7 @@ import {
   TasksDispatchContext,
 } from "../contexts/TasksContext.jsx";
 import * as api from "../utils/api.js";
-import { STATUSES, STATUS_CYCLE } from "../utils/constants.js";
-import { todayISO } from "../utils/dates.js";
+import { STATUSES } from "../utils/constants.js";
 
 export default function TasksProvider({ children }) {
   const [tasks, setTasks] = useState([]);
@@ -31,39 +30,25 @@ export default function TasksProvider({ children }) {
   }, [fetchTasks]);
 
   const updateStatus = useCallback(async (taskId, newStatus) => {
+    let previousStatus;
     setTasks((prev) => {
       const old = prev.find((t) => t.id === taskId);
       if (!old) return prev;
-      return prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t));
+      previousStatus = old.status;
+      return prev.map((t) => (t.id === taskId ? { ...t, status: newStatus, error: null } : t));
     });
 
     try {
       await api.updateTask(taskId, { status: newStatus });
     } catch (err) {
-      // Rollback
-      setTasks((prev) => {
-        const current = prev.find((t) => t.id === taskId);
-        if (!current) return prev;
-        const prevIndex = STATUS_CYCLE.indexOf(newStatus);
-        const rollbackStatus =
-          prevIndex > 0 ? STATUS_CYCLE[prevIndex - 1] : STATUS_CYCLE[0];
-        return prev.map((t) =>
-          t.id === taskId ? { ...t, status: rollbackStatus, error: err.message } : t,
-        );
-      });
+      // Rollback to previous status
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === taskId ? { ...t, status: previousStatus, error: err.message } : t,
+        ),
+      );
     }
   }, []);
-
-  const cycleStatus = useCallback(
-    (taskId) => {
-      const task = tasks.find((t) => t.id === taskId);
-      if (!task) return;
-      const currentIndex = STATUS_CYCLE.indexOf(task.status);
-      const nextIndex = (currentIndex + 1) % STATUS_CYCLE.length;
-      updateStatus(taskId, STATUS_CYCLE[nextIndex]);
-    },
-    [tasks, updateStatus],
-  );
 
   const updateNotes = useCallback(async (taskId, notes) => {
     setTasks((prev) =>
@@ -91,13 +76,12 @@ export default function TasksProvider({ children }) {
 
   const dispatchValue = useMemo(
     () => ({
-      cycleStatus,
       updateStatus,
       updateNotes,
       setMode,
       refreshTasks,
     }),
-    [cycleStatus, updateStatus, updateNotes, refreshTasks],
+    [updateStatus, updateNotes, refreshTasks],
   );
 
   return (

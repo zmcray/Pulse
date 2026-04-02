@@ -1,11 +1,11 @@
 export default function EmptyState() {
   return (
-    <div className="text-center py-16">
-      <div className="text-4xl mb-4">☀️</div>
-      <h2 className="text-lg font-medium text-text-primary mb-2">
+    <div className="text-center py-20">
+      <div className="text-3xl mb-3 opacity-60">☀️</div>
+      <h2 className="text-base font-medium text-text-primary mb-1.5">
         No tasks scheduled for today
       </h2>
-      <p className="text-sm text-text-secondary max-w-sm mx-auto">
+      <p className="text-xs text-text-muted max-w-xs mx-auto">
         Load tasks via your Strategy block or Roadmap Planning workstream.
       </p>
     </div>
