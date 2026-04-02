@@ -18,22 +18,27 @@ function apiDevPlugin() {
   return {
     name: "pulse-api-dev",
     configureServer(server) {
+      // Helper: parse JSON body from request
+      async function parseBody(req) {
+        const chunks = [];
+        for await (const chunk of req) chunks.push(chunk);
+        return JSON.parse(Buffer.concat(chunks).toString());
+      }
+
       // GET /api/tasks
       server.middlewares.use("/api/tasks", async (req, res, next) => {
-        // Let PATCH /api/tasks/:id fall through to the next handler
         const urlPath = req.url || "";
         const idMatch = urlPath.match(/^\/([^/?]+)/);
 
         if (req.method === "GET" && !idMatch) {
           try {
-            const { GET } = await import("./api/tasks.js");
-            const request = new Request("http://localhost/api/tasks", {
-              method: "GET",
-            });
-            const response = await GET(request);
-            res.statusCode = response.status;
-            res.setHeader("Content-Type", "application/json");
-            res.end(JSON.stringify(await response.json()));
+            const handler = (await import("./api/tasks/index.js")).default;
+            const mockReq = { method: "GET" };
+            const mockRes = {
+              status(code) { res.statusCode = code; return this; },
+              json(data) { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(data)); },
+            };
+            await handler(mockReq, mockRes);
           } catch (err) {
             console.error("[api/tasks] Dev handler error:", err.message);
             res.statusCode = 502;
@@ -44,31 +49,15 @@ function apiDevPlugin() {
 
         if (req.method === "PATCH" && idMatch) {
           const taskId = decodeURIComponent(idMatch[1]);
-          const chunks = [];
-          for await (const chunk of req) chunks.push(chunk);
-          let body;
           try {
-            body = JSON.parse(Buffer.concat(chunks).toString());
-          } catch {
-            res.statusCode = 400;
-            res.end(JSON.stringify({ error: "Invalid JSON" }));
-            return;
-          }
-
-          try {
-            const { PATCH } = await import("./api/tasks.js");
-            const request = new Request(
-              `http://localhost/api/tasks/${taskId}`,
-              {
-                method: "PATCH",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify(body),
-              },
-            );
-            const response = await PATCH(request, taskId);
-            res.statusCode = response.status;
-            res.setHeader("Content-Type", "application/json");
-            res.end(JSON.stringify(await response.json()));
+            const body = await parseBody(req);
+            const handler = (await import("./api/tasks/[id].js")).default;
+            const mockReq = { method: "PATCH", query: { id: taskId }, body };
+            const mockRes = {
+              status(code) { res.statusCode = code; return this; },
+              json(data) { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(data)); },
+            };
+            await handler(mockReq, mockRes);
           } catch (err) {
             console.error("[api/tasks/:id] Dev handler error:", err.message);
             res.statusCode = 502;
@@ -88,28 +77,15 @@ function apiDevPlugin() {
           return;
         }
 
-        const chunks = [];
-        for await (const chunk of req) chunks.push(chunk);
-        let body;
         try {
-          body = JSON.parse(Buffer.concat(chunks).toString());
-        } catch {
-          res.statusCode = 400;
-          res.end(JSON.stringify({ error: "Invalid JSON" }));
-          return;
-        }
-
-        try {
-          const { POST } = await import("./api/triage.js");
-          const request = new Request("http://localhost/api/triage", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify(body),
-          });
-          const response = await POST(request);
-          res.statusCode = response.status;
-          res.setHeader("Content-Type", "application/json");
-          res.end(JSON.stringify(await response.json()));
+          const body = await parseBody(req);
+          const handler = (await import("./api/triage.js")).default;
+          const mockReq = { method: "POST", body };
+          const mockRes = {
+            status(code) { res.statusCode = code; return this; },
+            json(data) { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(data)); },
+          };
+          await handler(mockReq, mockRes);
         } catch (err) {
           console.error("[api/triage] Dev handler error:", err.message);
           res.statusCode = 502;

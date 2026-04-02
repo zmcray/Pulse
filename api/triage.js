@@ -17,17 +17,16 @@ function nextMondayISO() {
   return d.toISOString().slice(0, 10);
 }
 
-export async function POST(request) {
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   try {
-    const { dispositions } = typeof request.json === "function"
-      ? await request.json()
-      : JSON.parse(await request.text());
+    const { dispositions } = req.body;
 
     if (!Array.isArray(dispositions) || dispositions.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "Dispositions array required" }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      );
+      return res.status(400).json({ error: "Dispositions array required" });
     }
 
     let updated = 0;
@@ -62,7 +61,6 @@ export async function POST(request) {
             break;
           }
           case "work_late": {
-            // No changes needed
             updated++;
             break;
           }
@@ -74,15 +72,9 @@ export async function POST(request) {
       }
     }
 
-    return new Response(JSON.stringify({ updated, errors }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return res.status(200).json({ updated, errors });
   } catch (err) {
     console.error("[api/triage] POST error:", err.message);
-    return new Response(
-      JSON.stringify({ error: "Triage failed" }),
-      { status: 502, headers: { "Content-Type": "application/json" } },
-    );
+    return res.status(502).json({ error: "Triage failed" });
   }
 }
