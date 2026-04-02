@@ -15,7 +15,7 @@ export default function Header() {
   );
 
   return (
-    <header className="flex items-center justify-between px-6 py-3.5 border-b border-border bg-surface-card">
+    <header className="[grid-area:header] flex items-center justify-between px-6 py-3.5 border-b border-border bg-surface-card">
       <div className="flex items-baseline gap-3">
         <span className="text-[1.1rem] font-semibold tracking-tight text-text-primary">
           Pulse
@@ -24,8 +24,7 @@ export default function Header() {
           {formatDate(todayISO())}
         </span>
       </div>
-      <div className="flex items-center gap-3">
-        {/* Progress pill */}
+      <div className="flex items-center gap-2">
         <div className="flex items-center gap-2 bg-surface-2 border border-border rounded-full px-3.5 py-1.5 text-xs text-text-secondary">
           <span>Tasks</span>
           <div className="w-20 h-1 bg-border rounded-full overflow-hidden">
@@ -39,7 +38,6 @@ export default function Header() {
             &thinsp;/&thinsp;{total}
           </span>
         </div>
-
         <button
           onClick={refreshTasks}
           className="text-sm text-text-muted hover:text-text-secondary transition-colors"
@@ -47,11 +45,10 @@ export default function Header() {
         >
           ↻
         </button>
-
         {mode === "normal" && incomplete.length > 0 && (
           <button
             onClick={() => setMode("triage")}
-            className="text-xs px-3 py-1.5 rounded-lg bg-orange/10 text-orange font-medium hover:bg-orange/20 transition-colors"
+            className="text-[11px] font-semibold px-3.5 py-1.5 rounded-full border border-accent bg-transparent text-accent hover:bg-accent hover:text-white transition-colors"
           >
             EOD Triage
           </button>
@@ -59,7 +56,7 @@ export default function Header() {
         {mode === "triage" && (
           <button
             onClick={() => setMode("normal")}
-            className="text-xs px-3 py-1.5 rounded-lg bg-surface-2 text-text-secondary font-medium hover:bg-border transition-colors"
+            className="text-[11px] font-semibold px-3.5 py-1.5 rounded-full border border-border bg-transparent text-text-secondary hover:bg-surface-2 transition-colors"
           >
             Cancel
           </button>
