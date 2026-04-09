@@ -69,6 +69,29 @@ function apiDevPlugin() {
         next();
       });
 
+      // GET /api/calendar
+      server.middlewares.use("/api/calendar", async (req, res) => {
+        if (req.method !== "GET") {
+          res.statusCode = 405;
+          res.end(JSON.stringify({ error: "Method not allowed" }));
+          return;
+        }
+
+        try {
+          const handler = (await import("./api/calendar/index.js")).default;
+          const mockReq = { method: "GET" };
+          const mockRes = {
+            status(code) { res.statusCode = code; return this; },
+            json(data) { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(data)); },
+          };
+          await handler(mockReq, mockRes);
+        } catch (err) {
+          console.error("[api/calendar] Dev handler error:", err.message);
+          res.statusCode = 502;
+          res.end(JSON.stringify({ error: "Calendar API unavailable" }));
+        }
+      });
+
       // POST /api/triage
       server.middlewares.use("/api/triage", async (req, res) => {
         if (req.method !== "POST") {

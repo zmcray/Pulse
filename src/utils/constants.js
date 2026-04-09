@@ -13,32 +13,56 @@ export const STATUS_CYCLE = [
 ];
 
 export const STATUS_COLORS = {
-  [STATUSES.NOT_STARTED]: "bg-status-not-started",
-  [STATUSES.IN_PROGRESS]: "bg-status-in-progress",
-  [STATUSES.DONE]: "bg-status-done",
-  [STATUSES.BLOCKED]: "bg-status-blocked",
-  [STATUSES.DROPPED]: "bg-status-dropped",
+  [STATUSES.NOT_STARTED]: "bg-text-muted",
+  [STATUSES.IN_PROGRESS]: "bg-blue",
+  [STATUSES.DONE]: "bg-green",
+  [STATUSES.BLOCKED]: "bg-red",
+  [STATUSES.DROPPED]: "bg-border",
 };
 
 export const STATUS_TEXT_COLORS = {
-  [STATUSES.NOT_STARTED]: "text-status-not-started",
-  [STATUSES.IN_PROGRESS]: "text-status-in-progress",
-  [STATUSES.DONE]: "text-status-done",
-  [STATUSES.BLOCKED]: "text-status-blocked",
-  [STATUSES.DROPPED]: "text-status-dropped",
+  [STATUSES.NOT_STARTED]: "text-text-muted",
+  [STATUSES.IN_PROGRESS]: "text-blue",
+  [STATUSES.DONE]: "text-green",
+  [STATUSES.BLOCKED]: "text-red",
+  [STATUSES.DROPPED]: "text-text-muted",
 };
 
+// Static fallback when calendar data is unavailable.
+// Calendar-driven dynamic ordering replaces this when /api/calendar succeeds.
 export const WORKBLOCK_ORDER = {
   "Morning Launch": 0,
   "PE Learning": 1,
-  "Strategy": 2,
-  "AI-Learning": 3,
+  "AI Intelligence": 2,
+  "Strategy": 3,
   "AI-Building": 4,
-  "PE Networking": 5,
+  "Business Development": 5,
   "McRayGroup": 6,
-  "SMB Search": 7,
-  "OS": 8,
+  "OS": 7,
 };
+
+// Calendar event categorization rule:
+//   1. Title matches a known workblock name (normalized) -> WORKBLOCK
+//   2. Title contains "Call" OR event has attendees           -> CALL
+//   3. Title contains a denylist keyword                      -> FILTERED
+//   4. Else                                                   -> CALL (informal meetings)
+//
+// Edit this list when stray personal events leak into the Calls sidebar.
+// Matched case-insensitively as a substring against the event title.
+export const CALENDAR_DENYLIST = [
+  "Lunch",
+  "Family",
+  "Doctor",
+  "Personal",
+  "Errand",
+  "School",
+  "Wrap-Up",
+  "Week Wrap",
+  "Workout",
+  "Gym",
+  "Dentist",
+  "Appointment",
+];
 
 export const DISPOSITIONS = {
   RESCHEDULE_TOMORROW: "reschedule_tomorrow",

@@ -1,21 +1,22 @@
 import { useState } from "react";
+import { useCalendarState } from "../contexts/CalendarContext.jsx";
+import { useAdHoc } from "../hooks/useAdHoc.js";
+import { formatTimeRange } from "../utils/calendarHelpers.js";
 
-function AdHocItem({ text }) {
-  const [checked, setChecked] = useState(false);
-
+function AdHocItem({ item, onToggle, onRemove }) {
   return (
     <div
-      onClick={() => setChecked(!checked)}
-      className={`flex items-start gap-[7px] py-[5px] px-2 rounded-md cursor-pointer transition-colors hover:bg-surface-2 ${
-        checked ? "opacity-60" : ""
+      onClick={() => onToggle(item.id)}
+      className={`flex items-start gap-[7px] py-[5px] px-2 rounded-md cursor-pointer transition-colors hover:bg-surface-2 group ${
+        item.checked ? "opacity-60" : ""
       }`}
     >
       <div
         className={`w-3.5 h-3.5 rounded-[3px] border-[1.5px] flex-shrink-0 mt-0.5 flex items-center justify-center transition-all ${
-          checked ? "bg-green border-green" : "bg-surface-card border-border"
+          item.checked ? "bg-green border-green" : "bg-surface-card border-border"
         }`}
       >
-        {checked && (
+        {item.checked && (
           <svg width="7" height="5" viewBox="0 0 7 5" fill="none">
             <path
               d="M1 2.5L2.5 4L6 1"
@@ -28,19 +29,58 @@ function AdHocItem({ text }) {
         )}
       </div>
       <span
-        className={`text-xs leading-snug ${
-          checked
+        className={`text-xs leading-snug flex-1 ${
+          item.checked
             ? "text-text-muted line-through"
             : "text-text-primary"
         }`}
       >
-        {text}
+        {item.text}
       </span>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove(item.id);
+        }}
+        className="text-[10px] text-text-muted hover:text-red opacity-0 group-hover:opacity-100 transition-opacity"
+        title="Remove"
+        aria-label="Remove ad hoc item"
+      >
+        ✕
+      </button>
+    </div>
+  );
+}
+
+function CallCard({ call }) {
+  return (
+    <div className="bg-surface-card border border-border-2 rounded-lg px-2.5 py-2">
+      <div className="text-[11px] font-semibold text-accent mb-0.5">
+        {formatTimeRange(call.start, call.end)}
+      </div>
+      <div className="font-medium text-[12.5px]">{call.title}</div>
+      {call.attendees && call.attendees.length > 0 && (
+        <div className="text-[11px] text-text-muted mt-0.5">
+          {call.attendees.length} attendee{call.attendees.length === 1 ? "" : "s"}
+        </div>
+      )}
     </div>
   );
 }
 
 export default function Sidebar() {
+  const { calls } = useCalendarState();
+  const { items, addItem, toggleItem, removeItem } = useAdHoc();
+  const [newItemText, setNewItemText] = useState("");
+
+  function handleAdd(e) {
+    e.preventDefault();
+    if (newItemText.trim()) {
+      addItem(newItemText);
+      setNewItemText("");
+    }
+  }
+
   return (
     <aside className="[grid-area:sidebar] border-r border-border overflow-y-auto py-5 px-4 flex flex-col gap-5 bg-surface">
       {/* Calls */}
@@ -48,28 +88,20 @@ export default function Sidebar() {
         <div className="text-[10px] font-semibold tracking-[0.08em] uppercase text-text-muted mb-2">
           Calls
         </div>
-        <div className="flex flex-col gap-1.5">
-          <div className="bg-surface-card border border-border-2 rounded-lg px-2.5 py-2">
-            <div className="text-[11px] font-semibold text-accent mb-0.5">
-              12:30 PM ET
-            </div>
-            <div className="font-medium text-[12.5px]">David Neighbours</div>
-            <div className="text-[11px] text-text-muted mt-0.5">
-              30 min. Intro via Tim Lower.
-            </div>
-            <div className="mt-1">
-              <span className="inline-block text-[10px] font-semibold px-[5px] py-px rounded bg-[#e8f4ff] text-blue">
-                Calendar
-              </span>
-            </div>
+        {calls && calls.length > 0 ? (
+          <div className="flex flex-col gap-1.5">
+            {calls.map((call, i) => (
+              <CallCard key={`${call.start}-${i}`} call={call} />
+            ))}
           </div>
-        </div>
-        <p className="text-[10px] text-text-muted/60 mt-2 px-1 italic">
-          Google Calendar integration coming in Phase 2
-        </p>
+        ) : (
+          <p className="text-[10.5px] text-text-muted/60 italic px-1">
+            No calls today
+          </p>
+        )}
       </div>
 
-      {/* Priority Stack */}
+      {/* Priority Stack -- still hardcoded for Phase 2 (P3 deferred) */}
       <div>
         <div className="text-[10px] font-semibold tracking-[0.08em] uppercase text-text-muted mb-2">
           Priority Stack
@@ -105,14 +137,25 @@ export default function Sidebar() {
         <div className="text-[10px] font-semibold tracking-[0.08em] uppercase text-text-muted mb-2">
           Ad Hoc
         </div>
-        <div className="flex flex-col gap-0.5">
-          <AdHocItem text="Reply to Earl Johnson re: follow-up meeting" />
-          <AdHocItem text="Send Amy the case study outline" />
-          <AdHocItem text="File McRayGroup LLC paperwork" />
+        <div className="flex flex-col gap-0.5 mb-2">
+          {items.map((item) => (
+            <AdHocItem
+              key={item.id}
+              item={item}
+              onToggle={toggleItem}
+              onRemove={removeItem}
+            />
+          ))}
         </div>
-        <p className="text-[10px] text-text-muted/60 mt-2 px-1 italic">
-          Local only. Not synced to Notion.
-        </p>
+        <form onSubmit={handleAdd}>
+          <input
+            type="text"
+            placeholder="Add ad hoc..."
+            value={newItemText}
+            onChange={(e) => setNewItemText(e.target.value)}
+            className="text-xs px-2 py-1 rounded-md border border-border bg-surface-card focus:border-text-muted focus:outline-none w-full"
+          />
+        </form>
       </div>
     </aside>
   );

@@ -50,6 +50,55 @@ export async function queryTodaysTasks() {
 }
 
 /**
+ * Query "hanging" tasks: incomplete tasks scheduled in the prior 1-7 days
+ * that didn't get done and weren't dropped. Surfaces them on weekends as
+ * carry-over for Friday review prep.
+ *
+ * Filter: Type = Task AND Status NOT IN [Done, Dropped]
+ *         AND Scheduled For in [today-7, today-1]
+ */
+export async function queryHangingTasks() {
+  const notion = getNotionClient();
+  const today = new Date();
+  const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  const yesterdayISO = new Date(today.getTime() - 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+
+  const response = await notion.databases.query({
+    database_id: getDatabaseId(),
+    filter: {
+      and: [
+        {
+          property: "Type",
+          select: { equals: "Task" },
+        },
+        {
+          property: "Status",
+          status: { does_not_equal: "Done" },
+        },
+        {
+          property: "Status",
+          status: { does_not_equal: "Dropped" },
+        },
+        {
+          property: "Scheduled For",
+          date: { on_or_after: sevenDaysAgo },
+        },
+        {
+          property: "Scheduled For",
+          date: { on_or_before: yesterdayISO },
+        },
+      ],
+    },
+  });
+
+  return response.results.map(normalizeTask);
+}
+
+/**
  * Update a task's properties in Notion.
  */
 export async function updateTaskProperties(pageId, updates) {

@@ -1,6 +1,11 @@
-import { useTasksDispatch } from "../contexts/TasksContext.jsx";
 import { STATUS_COLORS, STATUSES } from "../utils/constants.js";
 
+/**
+ * Display-only status badge. Phase 1 left this unused; Phase 2 briefly
+ * wired it up for 3-state cycling, then reverted -- TaskRow now owns the
+ * 2-state checkbox toggle directly. Keeping this file for potential
+ * future use (e.g., read-only task display in reports).
+ */
 const STATUS_ICONS = {
   [STATUSES.NOT_STARTED]: "○",
   [STATUSES.IN_PROGRESS]: "◐",
@@ -9,30 +14,14 @@ const STATUS_ICONS = {
   [STATUSES.DROPPED]: "—",
 };
 
-export default function StatusBadge({ taskId, status }) {
-  const { cycleStatus } = useTasksDispatch();
-
-  const isInteractive =
-    status !== STATUSES.BLOCKED && status !== STATUSES.DROPPED;
-
+export default function StatusBadge({ status }) {
   return (
-    <button
-      onClick={() => isInteractive && cycleStatus(taskId)}
-      onKeyDown={(e) => {
-        if ((e.key === "Enter" || e.key === " ") && isInteractive) {
-          e.preventDefault();
-          cycleStatus(taskId);
-        }
-      }}
-      className={`mt-0.5 w-6 h-6 flex items-center justify-center rounded-full text-sm transition-colors ${
-        isInteractive
-          ? "cursor-pointer hover:ring-2 hover:ring-gray-300"
-          : "cursor-default"
-      } ${STATUS_COLORS[status]} text-white`}
+    <span
+      className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-sm ${STATUS_COLORS[status]} text-white`}
       title={status}
-      aria-label={`Status: ${status}. ${isInteractive ? "Click to change." : ""}`}
+      aria-label={`Status: ${status}`}
     >
       {STATUS_ICONS[status]}
-    </button>
+    </span>
   );
 }

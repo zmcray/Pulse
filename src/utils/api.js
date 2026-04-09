@@ -19,6 +19,10 @@ export function fetchTasks() {
   return request("/tasks");
 }
 
+export function fetchCalendar() {
+  return request("/calendar");
+}
+
 export function updateTask(id, updates) {
   return request(`/tasks/${encodeURIComponent(id)}`, {
     method: "PATCH",
