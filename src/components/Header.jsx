@@ -4,14 +4,6 @@ import { useBuildPipelineDispatch } from "../contexts/BuildPipelineContext.jsx";
 import { STATUSES } from "../utils/constants.js";
 import { todayISO, formatDate } from "../utils/dates.js";
 
-function isBuildEnabled() {
-  try {
-    return localStorage.getItem("pulse:build-enabled") === "true";
-  } catch {
-    return false;
-  }
-}
-
 export default function Header() {
   const { tasks, mode } = useTasksState();
   const { setMode, refreshTasks } = useTasksDispatch();
@@ -27,7 +19,6 @@ export default function Header() {
   );
 
   const handleRefresh = view === "build" ? refreshPipeline : refreshTasks;
-  const buildEnabled = isBuildEnabled();
 
   return (
     <header className="[grid-area:header] flex items-center justify-between px-6 py-3.5 border-b border-border bg-surface-card">
@@ -36,34 +27,32 @@ export default function Header() {
           Pulse
         </span>
 
-        {buildEnabled && (
-          <div className="flex items-center gap-1 ml-1">
-            <button
-              type="button"
-              onClick={() => setView("daily")}
-              aria-pressed={view === "daily"}
-              className={`text-[11px] font-semibold px-2.5 py-1 rounded-full transition-colors ${
-                view === "daily"
-                  ? "bg-surface-2 text-text-primary"
-                  : "text-text-muted hover:text-text-secondary"
-              }`}
-            >
-              Daily
-            </button>
-            <button
-              type="button"
-              onClick={() => setView("build")}
-              aria-pressed={view === "build"}
-              className={`text-[11px] font-semibold px-2.5 py-1 rounded-full transition-colors ${
-                view === "build"
-                  ? "bg-surface-2 text-text-primary"
-                  : "text-text-muted hover:text-text-secondary"
-              }`}
-            >
-              Build
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-1 ml-1">
+          <button
+            type="button"
+            onClick={() => setView("daily")}
+            aria-pressed={view === "daily"}
+            className={`text-[11px] font-semibold px-2.5 py-1 rounded-full transition-colors ${
+              view === "daily"
+                ? "bg-surface-2 text-text-primary"
+                : "text-text-muted hover:text-text-secondary"
+            }`}
+          >
+            Daily
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("build")}
+            aria-pressed={view === "build"}
+            className={`text-[11px] font-semibold px-2.5 py-1 rounded-full transition-colors ${
+              view === "build"
+                ? "bg-surface-2 text-text-primary"
+                : "text-text-muted hover:text-text-secondary"
+            }`}
+          >
+            Build
+          </button>
+        </div>
 
         <span className="text-[0.8rem] text-text-muted">
           {formatDate(todayISO())}
