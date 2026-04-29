@@ -3,16 +3,20 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
-// Load .env into process.env for server-side API plugin
-try {
-  const env = readFileSync(".env", "utf-8");
-  for (const line of env.split("\n")) {
-    const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
-    if (match && !process.env[match[1]]) {
-      process.env[match[1]] = match[2] || "";
+// Load .env and .env.local into process.env for server-side API plugin.
+// Vite auto-loads .env.local for client-side VITE_* vars, but not for
+// process.env in dev plugins. .env.local takes precedence over .env.
+for (const file of [".env", ".env.local"]) {
+  try {
+    const env = readFileSync(file, "utf-8");
+    for (const line of env.split("\n")) {
+      const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      if (match) {
+        process.env[match[1]] = match[2] || "";
+      }
     }
-  }
-} catch {}
+  } catch {}
+}
 
 function apiDevPlugin() {
   return {
@@ -89,6 +93,37 @@ function apiDevPlugin() {
           console.error("[api/calendar] Dev handler error:", err.message);
           res.statusCode = 502;
           res.end(JSON.stringify({ error: "Calendar API unavailable" }));
+        }
+      });
+
+      // GET /api/linear
+      server.middlewares.use("/api/linear", async (req, res) => {
+        if (req.method !== "GET") {
+          res.statusCode = 405;
+          res.end(JSON.stringify({ error: "Method not allowed" }));
+          return;
+        }
+
+        try {
+          const handler = (await import("./api/linear/index.js")).default;
+          // Parse fresh=1 from query string
+          const urlPath = req.url || "";
+          const qs = urlPath.includes("?") ? urlPath.split("?")[1] : "";
+          const params = new URLSearchParams(qs);
+          const mockReq = {
+            method: "GET",
+            query: { fresh: params.get("fresh") || undefined },
+          };
+          const mockRes = {
+            status(code) { res.statusCode = code; return this; },
+            setHeader(k, v) { res.setHeader(k, v); return this; },
+            json(data) { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(data)); },
+          };
+          await handler(mockReq, mockRes);
+        } catch (err) {
+          console.error("[api/linear] Dev handler error:", err.message);
+          res.statusCode = 502;
+          res.end(JSON.stringify({ error: "Linear API unavailable" }));
         }
       });
 

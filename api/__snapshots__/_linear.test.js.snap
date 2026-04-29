@@ -1,0 +1,30 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PIPELINE_QUERY > is a stable string (snapshot guards typos) 1`] = `
+"
+  query Pipeline {
+    projects(first: 100, includeArchived: false) {
+      nodes {
+        id
+        name
+        url
+        icon
+        color
+        description
+        content
+        state
+        lead { id name }
+      }
+    }
+    issues(first: 250) {
+      nodes {
+        id
+        title
+        url
+        state { type name }
+        project { id }
+      }
+    }
+  }
+"
+`;

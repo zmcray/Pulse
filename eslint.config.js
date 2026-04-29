@@ -45,7 +45,11 @@ export default [
     },
   },
   {
-    files: ["src/**/*.test.{js,jsx}", "src/test/**/*.{js,jsx}"],
+    files: [
+      "src/**/*.test.{js,jsx}",
+      "src/test/**/*.{js,jsx}",
+      "api/**/*.test.js",
+    ],
     languageOptions: {
       globals: {
         ...globals.browser,
