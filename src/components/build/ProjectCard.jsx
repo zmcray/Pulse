@@ -96,9 +96,7 @@ export default function ProjectCard({ project, expanded, onToggle }) {
               </span>
             </div>
           ) : (
-            <span className="text-[10px] text-text-muted italic">
-              No features yet
-            </span>
+            <span className="text-[10px] text-text-muted italic">No features yet</span>
           )}
         </div>
       </div>

@@ -24,9 +24,7 @@ const STATUS_LABEL = {
 export default function ProjectFeatureList({ project, issues }) {
   if (issues.length === 0) {
     return (
-      <div className="text-[11px] text-text-muted italic px-2 py-2">
-        No features yet.
-      </div>
+      <div className="text-[11px] text-text-muted italic px-2 py-2">No features yet.</div>
     );
   }
 

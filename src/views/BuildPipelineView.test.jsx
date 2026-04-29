@@ -57,8 +57,24 @@ describe("BuildPipelineView", () => {
   it("renders kanban + stats when projects populated", () => {
     mockState.mockReturnValue({
       projects: [
-        { id: "p1", name: "Pulse", stage: "Building", ownerName: "Z", doneCount: 1, totalCount: 2, summary: "" },
-        { id: "p2", name: "Atlas", stage: "Idea", ownerName: "Z", doneCount: 0, totalCount: 0, summary: "" },
+        {
+          id: "p1",
+          name: "Pulse",
+          stage: "Building",
+          ownerName: "Z",
+          doneCount: 1,
+          totalCount: 2,
+          summary: "",
+        },
+        {
+          id: "p2",
+          name: "Atlas",
+          stage: "Idea",
+          ownerName: "Z",
+          doneCount: 0,
+          totalCount: 0,
+          summary: "",
+        },
       ],
       issues: [],
       loading: false,
@@ -75,7 +91,17 @@ describe("BuildPipelineView", () => {
 
   it("renders stale banner when state.stale is true", () => {
     mockState.mockReturnValue({
-      projects: [{ id: "p1", name: "P", stage: "Idea", ownerName: "Z", doneCount: 0, totalCount: 0, summary: "" }],
+      projects: [
+        {
+          id: "p1",
+          name: "P",
+          stage: "Idea",
+          ownerName: "Z",
+          doneCount: 0,
+          totalCount: 0,
+          summary: "",
+        },
+      ],
       issues: [],
       loading: false,
       error: null,
@@ -88,7 +114,15 @@ describe("BuildPipelineView", () => {
   });
 
   it("renders no-stage warning when >80% projects parsed as Idea", () => {
-    const idea = (id) => ({ id, name: id, stage: "Idea", ownerName: "Z", doneCount: 0, totalCount: 0, summary: "" });
+    const idea = (id) => ({
+      id,
+      name: id,
+      stage: "Idea",
+      ownerName: "Z",
+      doneCount: 0,
+      totalCount: 0,
+      summary: "",
+    });
     mockState.mockReturnValue({
       projects: [idea("p1"), idea("p2"), idea("p3"), idea("p4"), idea("p5")],
       issues: [],
@@ -105,8 +139,24 @@ describe("BuildPipelineView", () => {
   it("applies owner filter to kanban", () => {
     mockState.mockReturnValue({
       projects: [
-        { id: "p1", name: "Pulse", stage: "Building", ownerName: "Alice", doneCount: 0, totalCount: 0, summary: "" },
-        { id: "p2", name: "Atlas", stage: "Idea", ownerName: "Bob", doneCount: 0, totalCount: 0, summary: "" },
+        {
+          id: "p1",
+          name: "Pulse",
+          stage: "Building",
+          ownerName: "Alice",
+          doneCount: 0,
+          totalCount: 0,
+          summary: "",
+        },
+        {
+          id: "p2",
+          name: "Atlas",
+          stage: "Idea",
+          ownerName: "Bob",
+          doneCount: 0,
+          totalCount: 0,
+          summary: "",
+        },
       ],
       issues: [],
       loading: false,

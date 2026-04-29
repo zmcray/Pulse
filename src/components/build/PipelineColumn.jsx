@@ -20,9 +20,7 @@ export default function PipelineColumn({ stage, projects }) {
       </div>
 
       {projects.length === 0 ? (
-        <div className="text-[11px] text-text-muted italic px-1 py-3">
-          (empty)
-        </div>
+        <div className="text-[11px] text-text-muted italic px-1 py-3">(empty)</div>
       ) : (
         <div className="flex flex-col gap-2">
           {projects.map((project) => (

@@ -17,10 +17,16 @@ function installLocalStorage() {
     setItem: (k, v) => storage.set(k, String(v)),
     removeItem: (k) => storage.delete(k),
     clear: () => storage.clear(),
-    get length() { return storage.size; },
+    get length() {
+      return storage.size;
+    },
     key: (i) => Array.from(storage.keys())[i] || null,
   };
-  Object.defineProperty(window, "localStorage", { value: stub, writable: true, configurable: true });
+  Object.defineProperty(window, "localStorage", {
+    value: stub,
+    writable: true,
+    configurable: true,
+  });
 }
 
 const mockFetchPipeline = vi.fn();
@@ -61,10 +67,7 @@ function StateProbe() {
       <div data-testid="expanded">{state.expandedCardId || ""}</div>
       <div data-testid="filter">{`${state.filter.type}:${state.filter.value || ""}`}</div>
       <button data-testid="refresh" onClick={refresh} />
-      <button
-        data-testid="expand-p1"
-        onClick={() => setExpandedCardId("p1")}
-      />
+      <button data-testid="expand-p1" onClick={() => setExpandedCardId("p1")} />
       <button
         data-testid="set-filter"
         onClick={() => setFilter({ type: "owner", value: "Z" })}
@@ -107,15 +110,11 @@ describe("useBuildPipeline", () => {
   it("refresh() forces fresh: true", async () => {
     mockFetchPipeline.mockResolvedValue(makeOk());
     renderWithView("build");
-    await waitFor(() =>
-      expect(mockFetchPipeline).toHaveBeenCalledTimes(1),
-    );
+    await waitFor(() => expect(mockFetchPipeline).toHaveBeenCalledTimes(1));
     await act(async () => {
       screen.getByTestId("refresh").click();
     });
-    await waitFor(() =>
-      expect(mockFetchPipeline).toHaveBeenCalledTimes(2),
-    );
+    await waitFor(() => expect(mockFetchPipeline).toHaveBeenCalledTimes(2));
     expect(mockFetchPipeline.mock.calls[1][0]).toEqual({ fresh: true });
   });
 
@@ -135,9 +134,7 @@ describe("useBuildPipeline", () => {
       ]),
     );
     renderWithView("build");
-    await waitFor(() =>
-      expect(screen.getByTestId("count").textContent).toBe("2"),
-    );
+    await waitFor(() => expect(screen.getByTestId("count").textContent).toBe("2"));
 
     await act(async () => {
       screen.getByTestId("expand-p1").click();
@@ -147,9 +144,7 @@ describe("useBuildPipeline", () => {
     await act(async () => {
       screen.getByTestId("refresh").click();
     });
-    await waitFor(() =>
-      expect(mockFetchPipeline).toHaveBeenCalledTimes(2),
-    );
+    await waitFor(() => expect(mockFetchPipeline).toHaveBeenCalledTimes(2));
     expect(screen.getByTestId("expanded").textContent).toBe("p1");
   });
 
@@ -158,9 +153,7 @@ describe("useBuildPipeline", () => {
       makeOk([{ id: "p1", name: "P1", stage: "Building" }]),
     );
     renderWithView("build");
-    await waitFor(() =>
-      expect(screen.getByTestId("count").textContent).toBe("1"),
-    );
+    await waitFor(() => expect(screen.getByTestId("count").textContent).toBe("1"));
 
     await act(async () => {
       screen.getByTestId("expand-p1").click();
@@ -173,9 +166,7 @@ describe("useBuildPipeline", () => {
     await act(async () => {
       screen.getByTestId("refresh").click();
     });
-    await waitFor(() =>
-      expect(screen.getByTestId("expanded").textContent).toBe(""),
-    );
+    await waitFor(() => expect(screen.getByTestId("expanded").textContent).toBe(""));
   });
 
   it("setFilter persists to localStorage", async () => {

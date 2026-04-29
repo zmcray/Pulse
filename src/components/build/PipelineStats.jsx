@@ -10,8 +10,7 @@ export default function PipelineStats({ projects }) {
       acc.total++;
       if (p.stage === "Idea") acc.idea++;
       else if (p.stage === "Scoped") acc.scoped++;
-      else if (p.stage === "Building" || p.stage === "Live (Beta)")
-        acc.active++;
+      else if (p.stage === "Building" || p.stage === "Live (Beta)") acc.active++;
       else if (p.stage === "Stable") acc.stable++;
       return acc;
     },

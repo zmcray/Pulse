@@ -96,9 +96,27 @@ describe("ProjectCard", () => {
   it("renders ProjectFeatureList with Linear deep-link when expanded", () => {
     mockState.mockReturnValue({
       issues: [
-        { id: "i1", title: "Build kanban", url: "https://linear.app/x/issue/i1", state: "done", projectId: "p1" },
-        { id: "i2", title: "Filters", url: "https://linear.app/x/issue/i2", state: "in_progress", projectId: "p1" },
-        { id: "i3", title: "Other project's issue", url: "u", state: "backlog", projectId: "p2" },
+        {
+          id: "i1",
+          title: "Build kanban",
+          url: "https://linear.app/x/issue/i1",
+          state: "done",
+          projectId: "p1",
+        },
+        {
+          id: "i2",
+          title: "Filters",
+          url: "https://linear.app/x/issue/i2",
+          state: "in_progress",
+          projectId: "p1",
+        },
+        {
+          id: "i3",
+          title: "Other project's issue",
+          url: "u",
+          state: "backlog",
+          projectId: "p2",
+        },
       ],
     });
     render(<ProjectCard project={baseProject} expanded={true} onToggle={() => {}} />);

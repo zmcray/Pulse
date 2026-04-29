@@ -46,10 +46,7 @@ function groupByWorkblock(tasks, calendarWorkblocks) {
 export default function DailyView() {
   const { tasks, loading, error, mode } = useTasksState();
   const { refreshTasks } = useTasksDispatch();
-  const {
-    workblocks: calendarWorkblocks,
-    error: calendarError,
-  } = useCalendarState();
+  const { workblocks: calendarWorkblocks, error: calendarError } = useCalendarState();
 
   const mainRef = useRef(null);
 
@@ -99,18 +96,12 @@ export default function DailyView() {
 
   // Empty calendar day = no calendar workblocks AND no today tasks.
   const isEmptyDay =
-    (!calendarWorkblocks || calendarWorkblocks.length === 0) &&
-    todayTasks.length === 0;
+    (!calendarWorkblocks || calendarWorkblocks.length === 0) && todayTasks.length === 0;
 
-  const sectionLabel = isEmptyDay
-    ? "Carry-over from this week"
-    : "Day Dashboard";
+  const sectionLabel = isEmptyDay ? "Carry-over from this week" : "Day Dashboard";
 
   return (
-    <main
-      ref={mainRef}
-      className="[grid-area:main] overflow-y-auto py-5 px-6"
-    >
+    <main ref={mainRef} className="[grid-area:main] overflow-y-auto py-5 px-6">
       {error && (
         <div className="bg-[#fef1ee] border border-red/20 rounded-lg px-4 py-2.5 mb-4 text-xs text-red">
           Notion sync issue: {error}. Showing cached data.

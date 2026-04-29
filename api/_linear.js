@@ -80,8 +80,8 @@ export function parseStage(description) {
   if (!m) return DEFAULT_STAGE;
   const raw = m[1]
     .trim()
-    .replace(/^[*_]+|[*_]+$/g, "")          // strip leading/trailing emphasis
-    .replace(/[.,;:!?]+$/, "")               // strip trailing punctuation
+    .replace(/^[*_]+|[*_]+$/g, "") // strip leading/trailing emphasis
+    .replace(/[.,;:!?]+$/, "") // strip trailing punctuation
     .toLowerCase()
     .replace(/\s+/g, " ");
   return STAGE_ALIASES[raw] || DEFAULT_STAGE;
@@ -122,7 +122,9 @@ export function mapIssueState(stateObj) {
     case "canceled":
       return "canceled"; // caller drops these from totalCount
     default:
-      console.warn(`[linear] unknown issue state.type "${stateObj.type}"; defaulting to backlog`);
+      console.warn(
+        `[linear] unknown issue state.type "${stateObj.type}"; defaulting to backlog`,
+      );
       return "backlog";
   }
 }
@@ -157,16 +159,17 @@ export function normalizeProject(rawProject, projectIssues = []) {
   const totalCount = projectIssues.length;
   const doneCount = projectIssues.filter((i) => i.state === "done").length;
   // Try content first (full body), fall back to description for projects without a content body
-  const stage = parseStage(content) !== "Idea" ? parseStage(content) : parseStage(description);
+  const stage =
+    parseStage(content) !== "Idea" ? parseStage(content) : parseStage(description);
   return {
     id: rawProject.id,
     name: rawProject.name || "Untitled",
     url: rawProject.url || "",
     icon: rawProject.icon || null,
     color: rawProject.color || null,
-    description,                                          // short, for card summary line
+    description, // short, for card summary line
     stage,
-    summary: description || parseSummary(content),       // prefer Linear's description; fall back to first non-Stage line of content
+    summary: description || parseSummary(content), // prefer Linear's description; fall back to first non-Stage line of content
     state: rawProject.state || "",
     ownerId: rawProject?.lead?.id || null,
     ownerName: rawProject?.lead?.name || null,

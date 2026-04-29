@@ -177,7 +177,8 @@ describe("normalizeProject", () => {
         name: "Pulse",
         url: "u",
         description: "Daily task dashboard.",
-        content: "**Stage:** Building\n**Owner:** McRay Group\n\nDaily task dashboard with Notion sync.",
+        content:
+          "**Stage:** Building\n**Owner:** McRay Group\n\nDaily task dashboard with Notion sync.",
       },
       [
         { id: "i1", state: "done" },
@@ -254,16 +255,54 @@ describe("buildPipeline", () => {
     const data = {
       projects: {
         nodes: [
-          { id: "p1", name: "A", url: "", description: "", content: "**Stage:** Building", lead: null },
-          { id: "p2", name: "B", url: "", description: "", content: "**Stage:** Stable", lead: null },
+          {
+            id: "p1",
+            name: "A",
+            url: "",
+            description: "",
+            content: "**Stage:** Building",
+            lead: null,
+          },
+          {
+            id: "p2",
+            name: "B",
+            url: "",
+            description: "",
+            content: "**Stage:** Stable",
+            lead: null,
+          },
         ],
       },
       issues: {
         nodes: [
-          { id: "i1", title: "x", url: "", state: { type: "completed" }, project: { id: "p1" } },
-          { id: "i2", title: "x", url: "", state: { type: "started" }, project: { id: "p1" } },
-          { id: "i3", title: "x", url: "", state: { type: "completed" }, project: { id: "p2" } },
-          { id: "i4", title: "x", url: "", state: { type: "canceled" }, project: { id: "p2" } },
+          {
+            id: "i1",
+            title: "x",
+            url: "",
+            state: { type: "completed" },
+            project: { id: "p1" },
+          },
+          {
+            id: "i2",
+            title: "x",
+            url: "",
+            state: { type: "started" },
+            project: { id: "p1" },
+          },
+          {
+            id: "i3",
+            title: "x",
+            url: "",
+            state: { type: "completed" },
+            project: { id: "p2" },
+          },
+          {
+            id: "i4",
+            title: "x",
+            url: "",
+            state: { type: "canceled" },
+            project: { id: "p2" },
+          },
           { id: "i5", title: "x", url: "", state: { type: "backlog" }, project: null }, // orphan
         ],
       },
@@ -341,7 +380,10 @@ describe("fetchPipelineFromLinear", () => {
     fetchMock.mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({ data: { projects: { nodes: [] }, issues: { nodes: [] } }, errors: [{ message: "rate limited" }] }),
+      json: async () => ({
+        data: { projects: { nodes: [] }, issues: { nodes: [] } },
+        errors: [{ message: "rate limited" }],
+      }),
     });
     const result = await fetchPipelineFromLinear();
     expect(result.errors).toEqual([{ message: "rate limited" }]);
@@ -356,7 +398,18 @@ describe("getCachedPipeline", () => {
     status: 200,
     json: async () => ({
       data: {
-        projects: { nodes: [{ id: "p1", name: "Pulse", url: "u", description: "Daily dashboard.", content: "**Stage:** Building\n\nDaily dashboard.", lead: null }] },
+        projects: {
+          nodes: [
+            {
+              id: "p1",
+              name: "Pulse",
+              url: "u",
+              description: "Daily dashboard.",
+              content: "**Stage:** Building\n\nDaily dashboard.",
+              lead: null,
+            },
+          ],
+        },
         issues: { nodes: [] },
         ...overrides,
       },
