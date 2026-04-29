@@ -5,7 +5,7 @@ import PipelineStats from "../components/build/PipelineStats.jsx";
 import PipelineFilters from "../components/build/PipelineFilters.jsx";
 
 function applyFilter(projects, filter) {
-  if (!filter || filter.type === "all") return projects;
+  if (filter.type === "all") return projects;
   if (filter.type === "owner") {
     return projects.filter((p) => p.ownerName === filter.value);
   }
@@ -20,12 +20,6 @@ export default function BuildPipelineView() {
     () => applyFilter(projects, filter),
     [projects, filter],
   );
-
-  // Soft warning chip: count projects that fell into Idea due to no Stage line.
-  // We can't tell from the client alone (the stage was already parsed server-side),
-  // but if more than 80% of projects are Idea, that's a strong signal.
-  const ideaCount = projects.filter((p) => p.stage === "Idea").length;
-  const showStageWarning = projects.length >= 5 && ideaCount / projects.length > 0.8;
 
   if (loading && projects.length === 0) {
     return (
@@ -69,13 +63,6 @@ export default function BuildPipelineView() {
       {stale && (
         <div className="bg-[#fef1ee] border border-red/20 rounded-lg px-4 py-2.5 mb-4 text-xs text-red">
           Showing cached data. Linear is unreachable.
-        </div>
-      )}
-
-      {showStageWarning && (
-        <div className="bg-surface-card border border-border-2 rounded-lg px-4 py-2 mb-4 text-[11px] text-text-muted">
-          Most projects parsed as Idea — check that project descriptions include a{" "}
-          <code>**Stage:**</code> line.
         </div>
       )}
 

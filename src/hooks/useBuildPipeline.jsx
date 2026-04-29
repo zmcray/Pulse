@@ -39,7 +39,9 @@ export default function BuildPipelineProvider({ children }) {
   const { view } = useView();
   const [projects, setProjects] = useState([]);
   const [issues, setIssues] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // Start loading=true if we'll fetch on mount (view persisted as build) so the
+  // first paint shows a spinner instead of flashing the "No projects yet" empty state.
+  const [loading, setLoading] = useState(() => view === "build");
   const [error, setError] = useState(null);
   const [stale, setStale] = useState(false);
   const [lastFetched, setLastFetched] = useState(null);

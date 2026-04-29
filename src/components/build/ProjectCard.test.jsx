@@ -1,12 +1,7 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import ProjectCard from "./ProjectCard.jsx";
-
-const mockState = vi.fn();
-vi.mock("../../contexts/BuildPipelineContext.jsx", () => ({
-  useBuildPipelineState: () => mockState(),
-}));
 
 const baseProject = {
   id: "p1",
@@ -19,11 +14,8 @@ const baseProject = {
   ownerId: "u1",
   doneCount: 2,
   totalCount: 7,
+  issues: [],
 };
-
-beforeEach(() => {
-  mockState.mockReturnValue({ issues: [] });
-});
 
 describe("ProjectCard", () => {
   it("renders name, summary, owner initials, and progress", () => {
@@ -94,7 +86,8 @@ describe("ProjectCard", () => {
   });
 
   it("renders ProjectFeatureList with Linear deep-link when expanded", () => {
-    mockState.mockReturnValue({
+    const projectWithIssues = {
+      ...baseProject,
       issues: [
         {
           id: "i1",
@@ -110,19 +103,13 @@ describe("ProjectCard", () => {
           state: "in_progress",
           projectId: "p1",
         },
-        {
-          id: "i3",
-          title: "Other project's issue",
-          url: "u",
-          state: "backlog",
-          projectId: "p2",
-        },
       ],
-    });
-    render(<ProjectCard project={baseProject} expanded={true} onToggle={() => {}} />);
+    };
+    render(
+      <ProjectCard project={projectWithIssues} expanded={true} onToggle={() => {}} />,
+    );
     expect(screen.getByText("Build kanban")).toBeInTheDocument();
     expect(screen.getByText("Filters")).toBeInTheDocument();
-    expect(screen.queryByText("Other project's issue")).not.toBeInTheDocument();
     const linearLink = screen.getByText(/Open in Linear/);
     expect(linearLink.closest("a")).toHaveAttribute("href", baseProject.url);
     expect(linearLink.closest("a")).toHaveAttribute("target", "_blank");

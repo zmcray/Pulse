@@ -37,6 +37,8 @@ const STALE_MAX_MS = 5 * 60_000;
 
 const cache = new Map();
 let inFlight = null;
+let lastFreshAt = 0;
+const FRESH_MIN_INTERVAL_MS = 30_000; // ?fresh=1 abuse cap; rate-limits cache-bypass to once per 30s
 
 /**
  * Pulled from Linear. Returns both projects (with parsed Stage) and issues
@@ -87,17 +89,10 @@ export function parseStage(description) {
   return STAGE_ALIASES[raw] || DEFAULT_STAGE;
 }
 
-/**
- * Pull the first non-Stage line of a description as a 140-char summary.
- */
-export function parseSummary(description) {
-  if (!description) return "";
-  const lines = description.split(/\r?\n/);
-  const firstNonStage = lines.find(
-    (l) => l.trim() && !/^(?:\*\*|__)?\s*Stage\s*:/i.test(l.trim()),
-  );
-  return firstNonStage ? firstNonStage.trim().slice(0, 140) : "";
-}
+// Validate URLs before they reach the client — defense-in-depth against a
+// hypothetical Linear payload containing javascript: or data: URLs.
+const SAFE_URL_RE = /^https:\/\/linear\.app\//i;
+const safeUrl = (u) => (typeof u === "string" && SAFE_URL_RE.test(u) ? u : "");
 
 /**
  * Map Linear's state.type + state.name to our 4 buckets.
@@ -139,7 +134,7 @@ export function normalizeIssue(rawIssue) {
   return {
     id: rawIssue.id,
     title: rawIssue.title || "Untitled",
-    url: rawIssue.url || "",
+    url: safeUrl(rawIssue.url),
     state,
     projectId: rawIssue?.project?.id || null,
   };
@@ -158,23 +153,25 @@ export function normalizeProject(rawProject, projectIssues = []) {
   const content = rawProject?.content || "";
   const totalCount = projectIssues.length;
   const doneCount = projectIssues.filter((i) => i.state === "done").length;
-  // Try content first (full body), fall back to description for projects without a content body
-  const stage =
-    parseStage(content) !== "Idea" ? parseStage(content) : parseStage(description);
+  // Stage lives in `content` (full markdown body); fall back to `description`
+  // for legacy projects where the convention was put in the short summary.
+  const stageFromContent = parseStage(content);
+  const stage = stageFromContent !== "Idea" ? stageFromContent : parseStage(description);
   return {
     id: rawProject.id,
     name: rawProject.name || "Untitled",
-    url: rawProject.url || "",
+    url: safeUrl(rawProject.url),
     icon: rawProject.icon || null,
     color: rawProject.color || null,
-    description, // short, for card summary line
+    description, // short, used as the card summary line
+    summary: description, // alias kept for client clarity
     stage,
-    summary: description || parseSummary(content), // prefer Linear's description; fall back to first non-Stage line of content
     state: rawProject.state || "",
     ownerId: rawProject?.lead?.id || null,
     ownerName: rawProject?.lead?.name || null,
     doneCount,
     totalCount,
+    issues: projectIssues, // pre-attached so cards don't re-filter the global issues array
   };
 }
 
@@ -216,9 +213,9 @@ export function buildPipeline(rawData) {
 export async function fetchPipelineFromLinear() {
   const apiKey = process.env.LINEAR_API_KEY;
   if (!apiKey) {
-    throw new Error(
-      `LINEAR_API_KEY env var not set (VERCEL_ENV=${process.env.VERCEL_ENV ?? "unknown"})`,
-    );
+    const err = new Error("missing_linear_api_key");
+    err.code = "missing_linear_api_key";
+    throw err;
   }
 
   const controller = new AbortController();
@@ -263,6 +260,13 @@ export async function getCachedPipeline({ fresh = false } = {}) {
   const key = "pipeline";
   const now = Date.now();
   const hit = cache.get(key);
+
+  // Rate-limit cache-bypass: a public `?fresh=1` URL on a 1500-req/hour key is
+  // a soft DoS vector. Demote fresh to a no-op if a fresh fetch ran recently.
+  if (fresh && now - lastFreshAt < FRESH_MIN_INTERVAL_MS) {
+    fresh = false;
+  }
+  if (fresh) lastFreshAt = now;
 
   if (!fresh && hit && now - hit.fetchedAt < CACHE_TTL_MS) {
     return {
@@ -334,4 +338,5 @@ export async function getCachedPipeline({ fresh = false } = {}) {
 export function __resetCacheForTests() {
   cache.clear();
   inFlight = null;
+  lastFreshAt = 0;
 }

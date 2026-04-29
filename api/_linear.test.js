@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   parseStage,
-  parseSummary,
   mapIssueState,
   normalizeIssue,
   normalizeProject,
@@ -72,28 +71,6 @@ describe("parseStage", () => {
   });
 });
 
-describe("parseSummary", () => {
-  it("returns empty string for empty/null", () => {
-    expect(parseSummary("")).toBe("");
-    expect(parseSummary(null)).toBe("");
-  });
-
-  it("returns first non-Stage line", () => {
-    const desc = "**Stage:** Building\n\nA cool project.";
-    expect(parseSummary(desc)).toBe("A cool project.");
-  });
-
-  it("returns empty string when only Stage line present", () => {
-    expect(parseSummary("**Stage:** Building")).toBe("");
-  });
-
-  it("truncates to 140 chars", () => {
-    const long = "x".repeat(200);
-    const desc = `**Stage:** Building\n\n${long}`;
-    expect(parseSummary(desc)).toHaveLength(140);
-  });
-});
-
 describe("mapIssueState", () => {
   it("returns backlog and warns on null/missing state", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -157,6 +134,17 @@ describe("normalizeIssue", () => {
     });
   });
 
+  it("strips non-Linear issue URLs (defense against javascript:/data:)", () => {
+    const result = normalizeIssue({
+      id: "i1",
+      title: "x",
+      url: "javascript:alert(1)",
+      state: { type: "backlog", name: "Backlog" },
+      project: { id: "p1" },
+    });
+    expect(result.url).toBe("");
+  });
+
   it("handles null project", () => {
     const result = normalizeIssue({
       id: "i1",
@@ -207,18 +195,51 @@ describe("normalizeProject", () => {
     expect(project.stage).toBe("Stable");
   });
 
-  it("falls back to first non-Stage line of content when description is empty", () => {
+  it("summary aliases description (Linear's description IS the short summary)", () => {
     const project = normalizeProject(
       {
         id: "p1",
         name: "x",
         url: "u",
-        description: "",
-        content: "**Stage:** Idea\n\nFirst-line summary.",
+        description: "Daily dashboard.",
+        content: "**Stage:** Building\n\nLong-form body.",
       },
       [],
     );
-    expect(project.summary).toBe("First-line summary.");
+    expect(project.summary).toBe("Daily dashboard.");
+    expect(project.description).toBe("Daily dashboard.");
+  });
+
+  it("strips non-Linear URLs to prevent javascript:/data: link injection", () => {
+    const project = normalizeProject(
+      {
+        id: "p1",
+        name: "x",
+        url: "javascript:alert(1)",
+        description: "",
+        content: "",
+      },
+      [],
+    );
+    expect(project.url).toBe("");
+  });
+
+  it("attaches the project's issues onto the project object", () => {
+    const issues = [
+      { id: "i1", state: "done" },
+      { id: "i2", state: "in_progress" },
+    ];
+    const project = normalizeProject(
+      {
+        id: "p1",
+        name: "x",
+        url: "https://linear.app/x/project/p1",
+        description: "",
+        content: "",
+      },
+      issues,
+    );
+    expect(project.issues).toBe(issues);
   });
 
   it("handles null lead", () => {
@@ -340,9 +361,13 @@ describe("fetchPipelineFromLinear", () => {
     delete global.fetch;
   });
 
-  it("throws when LINEAR_API_KEY is missing", async () => {
+  it("throws missing_linear_api_key when key is absent (no env diagnostic in message)", async () => {
     delete process.env.LINEAR_API_KEY;
-    await expect(fetchPipelineFromLinear()).rejects.toThrow(/LINEAR_API_KEY/);
+    const err = await fetchPipelineFromLinear().catch((e) => e);
+    expect(err.message).toBe("missing_linear_api_key");
+    expect(err.code).toBe("missing_linear_api_key");
+    // Confirm we don't leak VERCEL_ENV or other diagnostic into the error
+    expect(err.message).not.toMatch(/VERCEL_ENV/);
   });
 
   it("sends Authorization header without Bearer prefix", async () => {
@@ -441,6 +466,14 @@ describe("getCachedPipeline", () => {
     await getCachedPipeline();
     await getCachedPipeline({ fresh: true });
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("rate-limits ?fresh=1 to once per 30s (anti-DoS)", async () => {
+    fetchMock.mockResolvedValue(okResponse());
+    await getCachedPipeline({ fresh: true });
+    // Second fresh call within the window should serve cache, not hit Linear
+    await getCachedPipeline({ fresh: true });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("de-duplicates concurrent in-flight fetches", async () => {

@@ -16,5 +16,3 @@ export function useBuildPipelineDispatch() {
     throw new Error("useBuildPipelineDispatch must be used within BuildPipelineProvider");
   return ctx;
 }
-
-export { default as BuildPipelineProvider } from "../hooks/useBuildPipeline.jsx";

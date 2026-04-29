@@ -39,13 +39,7 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error(`[api/linear] unrecoverable: ${err.message}`);
     res.setHeader("Cache-Control", "no-store");
-    res.status(503).json({
-      projects: [],
-      issues: [],
-      fetchedAt: Date.now(),
-      cacheHit: false,
-      stale: false,
-      error: err.code || "linear_unavailable",
-    });
+    // Client throws on !res.ok and surfaces the error code; no body shape needed.
+    res.status(503).json({ error: err.code || "linear_unavailable" });
   }
 }

@@ -1,5 +1,3 @@
-import { useMemo } from "react";
-import { useBuildPipelineState } from "../../contexts/BuildPipelineContext.jsx";
 import ProjectFeatureList from "./ProjectFeatureList.jsx";
 
 /**
@@ -28,11 +26,9 @@ function ownerInitials(name) {
 }
 
 export default function ProjectCard({ project, expanded, onToggle }) {
-  const { issues } = useBuildPipelineState();
-  const projectIssues = useMemo(
-    () => issues.filter((i) => i.projectId === project.id),
-    [issues, project.id],
-  );
+  // Issues are pre-attached to the project by the server normalizer; no need to
+  // re-filter the global issues array on every render.
+  const projectIssues = project.issues || [];
 
   const borderClass = STAGE_BORDER_CLASS[project.stage] || "border-l-text-muted";
   const hasIssues = project.totalCount > 0;

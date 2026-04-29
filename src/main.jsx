@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { TasksProvider } from "./contexts/TasksContext.jsx";
 import { CalendarProvider } from "./contexts/CalendarContext.jsx";
 import { ViewProvider } from "./contexts/ViewContext.jsx";
-import { BuildPipelineProvider } from "./contexts/BuildPipelineContext.jsx";
+import BuildPipelineProvider from "./hooks/useBuildPipeline.jsx";
 import App from "./App.jsx";
 import "./index.css";
 

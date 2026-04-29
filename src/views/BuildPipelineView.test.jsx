@@ -113,29 +113,6 @@ describe("BuildPipelineView", () => {
     expect(screen.getByText(/Showing cached data/i)).toBeInTheDocument();
   });
 
-  it("renders no-stage warning when >80% projects parsed as Idea", () => {
-    const idea = (id) => ({
-      id,
-      name: id,
-      stage: "Idea",
-      ownerName: "Z",
-      doneCount: 0,
-      totalCount: 0,
-      summary: "",
-    });
-    mockState.mockReturnValue({
-      projects: [idea("p1"), idea("p2"), idea("p3"), idea("p4"), idea("p5")],
-      issues: [],
-      loading: false,
-      error: null,
-      stale: false,
-      lastFetched: 1700000000000,
-      filter: { type: "all", value: null },
-    });
-    render(<BuildPipelineView />);
-    expect(screen.getByText(/Most projects parsed as Idea/i)).toBeInTheDocument();
-  });
-
   it("applies owner filter to kanban", () => {
     mockState.mockReturnValue({
       projects: [
