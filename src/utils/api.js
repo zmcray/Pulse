@@ -36,3 +36,7 @@ export function submitTriage(dispositions) {
     body: JSON.stringify({ dispositions }),
   });
 }
+
+export function fetchPipeline({ fresh = false } = {}) {
+  return request(fresh ? "/linear?fresh=1" : "/linear");
+}
