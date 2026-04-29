@@ -73,6 +73,16 @@ Add a "Build" (or "Pipeline") tab to Pulse that renders a 5-column kanban of all
 - [x] Move MCR-86 to In Progress in Linear
 - [x] /ultraplan
 - [x] /plan-eng-review (NEEDS CHANGES → applied as deltas)
+- [x] Codex review (PROCEED WITH CHANGES → 5 of 8 deltas applied)
+- [x] Phase 1: Server layer (47 tests, live smoke green)
+- [x] Phase 2: View context + hook + view switcher
+- [x] Phase 3: Kanban + cards
+- [x] Phase 4: Stats + filters + expansion + flag removed
+- [x] Phase 5: Component + hook + leak tests (120 passing)
+- [x] Phase 6: Cleanup + docs + Linear no-Bearer solution doc
+- [x] /ce:review (3 parallel reviewers — simplicity / security / architecture)
+- [x] Applied 10 high-value review findings
+- [x] /ce:compound (captured Linear description-vs-content gotcha)
 - [ ] Micro-task breakdown
 - [ ] Implementation
 - [ ] /ce:review
